@@ -9,12 +9,14 @@ def get_access_token():
 
 
 def test_hello():
-    headers = {"Authorization": f"Bearer {get_access_token()}"}
+    headers = {
+        "Authorization": f"Bearer {get_access_token()}",
+    }
     response = requests.post(f'{url}/hello', headers=headers)
     if response.status_code == 200:
         print(response.json()["message"])
     else:
-        print("Request failed with status code:", response.status_code)
+        print(response.json()["detail"], response.status_code)
 
 
 if __name__ == "__main__":

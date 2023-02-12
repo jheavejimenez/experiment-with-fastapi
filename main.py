@@ -18,14 +18,6 @@ async def root():
     return {"message": f"Your secret key is: {secret_key}"}
 
 
-def check_token(token: str):
-    try:
-        jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        return True
-    except jwt.exceptions.InvalidTokenError:
-        return False
-
-
 @app.post("/hello")
 async def hello(authorization: str = Header(None)):
     if not authorization:
@@ -38,17 +30,12 @@ async def hello(authorization: str = Header(None)):
     token = authorization.split(" ")[1]
 
     try:
-        decoded_token = jwt.decode(token, str(SECRET_KEY), algorithms=["HS256"])
+        jwt.decode(token, str(SECRET_KEY), algorithms=["HS256"])
     except jwt.exceptions.InvalidSignatureError:
         raise HTTPException(status_code=400, detail="Invalid JWT signature")
     except jwt.exceptions.ExpiredSignatureError:
         raise HTTPException(status_code=400, detail="JWT has expired")
 
-    current_time = datetime.datetime.utcnow()
-    if "exp" in decoded_token:
-        exp_time = datetime.datetime.fromtimestamp(decoded_token["exp"])
-        if exp_time <= current_time:
-            raise HTTPException(status_code=400, detail="JWT has expired")
     return {"message": "Hello World"}
 
 
