@@ -64,7 +64,7 @@ async def generate_token(x_forwarded_for: str = Header(None)):
         "iss": x_forwarded_for,
     }
 
-    jwt_token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+    jwt_token = jwt.encode(payload, str(SECRET_KEY), algorithm="HS256")
     return {"access_token": jwt_token}
 
 
