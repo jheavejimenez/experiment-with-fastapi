@@ -28,15 +28,30 @@ def check_token(token: str):
 
 @app.post("/hello")
 async def hello(authorization: str = Header(None)):
-    if authorization is None:
-        raise HTTPException(status_code=400, detail="Authorization header is missing")
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=400, detail="Authorization header must start with 'Bearer '")
-    token = authorization.split(" ")[1]
-    if not check_token(token):
-        raise HTTPException(status_code=401, detail="Invalid access token")
+    if not authorization:
+        raise HTTPException(status_code=400, detail="Authorization header is required")
 
-    return {"message": "Hello, World!"}
+    if not authorization.startswith("Bearer"):
+        raise HTTPException(status_code=400, detail="Authorization header must start with 'Bearer'")
+
+    # Extract the JWT token from the authorization header
+    token = authorization.split(" ")[1]
+
+    try:
+        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+    except jwt.exceptions.InvalidSignatureError:
+        raise HTTPException(status_code=400, detail="Invalid JWT signature")
+    except jwt.exceptions.ExpiredSignatureError:
+        raise HTTPException(status_code=400, detail="JWT has expired")
+
+    current_time = datetime.datetime.utcnow()
+    if "exp" in decoded_token and decoded_token["exp"] <= current_time:
+        raise HTTPException(status_code=400, detail="JWT has expired")
+
+    if "role" not in decoded_token or decoded_token["role"] != "user":
+        raise HTTPException(status_code=400, detail="Unauthorized user")
+
+    return {"message": "Hello World"}
 
 
 @app.post("/generate-token")
