@@ -55,7 +55,10 @@ async def generate_token(x_forwarded_for: str = Header(None)):
 
 @app.get('/zip')
 async def get_zip():
-    with zipfile.ZipFile("files.zip", "w") as zip_obj:
-        zip_obj.write(f"files/zipMePlease.txt")
+    folder_path = 'zip_files/files.zip'
+    file_name = "files/zipMePlease.txt"
 
-    return FileResponse("files.zip", media_type="application/zip")
+    with zipfile.ZipFile(folder_path, "w") as zip_obj:
+        zip_obj.write(file_name)
+
+    return FileResponse(folder_path, media_type="application/zip")
