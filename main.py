@@ -38,19 +38,17 @@ async def hello(authorization: str = Header(None)):
     token = authorization.split(" ")[1]
 
     try:
-        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        decoded_token = jwt.decode(token, str(SECRET_KEY), algorithms=["HS256"])
     except jwt.exceptions.InvalidSignatureError:
         raise HTTPException(status_code=400, detail="Invalid JWT signature")
     except jwt.exceptions.ExpiredSignatureError:
         raise HTTPException(status_code=400, detail="JWT has expired")
 
     current_time = datetime.datetime.utcnow()
-    if "exp" in decoded_token and decoded_token["exp"] <= current_time:
-        raise HTTPException(status_code=400, detail="JWT has expired")
-
-    if "role" not in decoded_token or decoded_token["role"] != "user":
-        raise HTTPException(status_code=400, detail="Unauthorized user")
-
+    if "exp" in decoded_token:
+        exp_time = datetime.datetime.fromtimestamp(decoded_token["exp"])
+        if exp_time <= current_time:
+            raise HTTPException(status_code=400, detail="JWT has expired")
     return {"message": "Hello World"}
 
 
